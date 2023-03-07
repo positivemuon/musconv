@@ -132,7 +132,13 @@ class check_SC_convergence:
             if len(specie_index) > self.mnasf:
                 specie_dist  = [atm_dist[i] for i in specie_index if self.atm_forces_mag[i] < self.max_force_thr] 
                 specie_force = [self.atm_forces_mag[i] for i in specie_index if self.atm_forces_mag[i] < self.max_force_thr]
-                par,cov      = self.fit_curve(self.exp_fnc,specie_dist, specie_force)
+
+                try:
+                    par,cov  = self.fit_curve(self.exp_fnc,specie_dist, specie_force)
+                    print(par,np.sqrt(np.diag(cov)))
+                except:
+                    raise Exception("Check force data, maybe the data does not decay exponentially")
+
                 
                 """fit  and data check, better conditions?"""
                 stder= np.sqrt(np.diag(cov))   
