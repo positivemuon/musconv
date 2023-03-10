@@ -46,39 +46,37 @@ class SCgenerators:
             min_atoms  = min_atoms,
             max_atoms  = max_atoms,
             min_length = min_length,
-            force_diagonal = 'False'
+            force_diagonal = True
         ) 
         
         py_SCstruc = CST.apply_transformation(py_struc)
-        SC_size    = np.divide(py_SCstruc.lattice.abc,py_struc.lattice.abc)
+        SC_matrix    = np.dot(py_SCstruc.lattice.matrix,py_struc.lattice.inv_matrix)
+        #SC_matrix   = np.array(SC_matrix).astype(int)
+        SC_matrix    = np.asarray(np.round_(SC_matrix), dtype = 'int')
         
-        return py_SCstruc, np.array(SC_size).astype(int)
+        return py_SCstruc, SC_matrix
     
     
     """PS: func below not used within the class and can be removed if not necessary in future!"""
     @staticmethod
-    def gen_SC_from_grid(py_struc, SC_size):
+    def gen_SC_from_grid(py_struc, SC_matrix):
         """
         Function that generates supercell structure for a given grid size.
         """
         py_SCstruc = py_struc.copy()
-        py_SCstruc.make_supercell(
-            [SC_size[0],
-             SC_size[1],
-             SC_size[2]]
-        )
-        return py_SCstruc, SC_size
+        py_SCstruc.make_supercell(SC_matrix)
+        return py_SCstruc
 
     
     
     @staticmethod
-    def append_muon_to_SC(py_SCstruc,SC_size,mu_frac_coord):
+    def append_muon_to_SC(py_SCstruc,SC_matrix,mu_frac_coord):
         """
         Add the muon as a hydrogen atom to the supercell (SC).
         
         Params:
             py_SCstruc    : The pymatgen supercell structure
-            SC_size           : array-->the SC grid size
+            SC_matrix           : array-->the SC grid size
             mu_frac_coord     : array-->Interstitial site scaled in units 
         
         Returns: 
@@ -87,7 +85,7 @@ class SCgenerators:
         
         """
         
-        mu_frac_coord_SC  = np.divide(mu_frac_coord,SC_size)
+        mu_frac_coord_SC  = np.dot(mu_frac_coord,np.linalg.inv(SC_matrix))
         py_SCstruc_withmu = py_SCstruc.copy()
         
         """ what if a H specie is in the structure object? """
@@ -131,7 +129,7 @@ class SCgenerators:
         max_atoms  = self.py_struc.num_sites*(2**3)
         min_length = np.min(self.py_struc.lattice.abc)+1
 
-        py_SCstruc,SC_size = self.gen_nearcubic_SC(
+        py_SCstruc,SC_matrix = self.gen_nearcubic_SC(
             self.py_struc,
             min_atoms,
             max_atoms,
@@ -151,7 +149,7 @@ class SCgenerators:
         
         py_SCstruc_with_mu = self.append_muon_to_SC(
             py_SCstruc,
-            SC_size,
+            SC_matrix,
             mu_frac_coord)
         
         return py_SCstruc_with_mu
@@ -177,7 +175,7 @@ class SCgenerators:
         if min_atoms > max_atoms:
             raise ValueError('min_atoms > max_atom while re-generating supercell, check (restart_num).')
         
-        py_SCstruc,SC_size = self.gen_nearcubic_SC(
+        py_SCstruc,SC_matrix = self.gen_nearcubic_SC(
             self.py_struc,
             min_atoms,
             max_atoms,
@@ -193,7 +191,7 @@ class SCgenerators:
 
         py_SCstruc_with_mu = self.append_muon_to_SC(
             py_SCstruc,
-            SC_size,
+            SC_matrix,
             mu_frac_coord)
         
         return py_SCstruc_with_mu
