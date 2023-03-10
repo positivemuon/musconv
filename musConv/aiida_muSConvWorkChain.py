@@ -1,4 +1,5 @@
 #ALOT OF WORK STILL HAVE TO BE DONE 
+# include pseudos as input, exclude from the PWworkcahin or find a way around to inlcude muon site not present in the initial input structure
 #COMMENTS
 #CLEAN-UP
 #RE-LOGICING DUPLICATED CODES
