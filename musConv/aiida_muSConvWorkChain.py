@@ -1,5 +1,4 @@
 #ALOT OF WORK STILL HAVE TO BE DONE 
-# include pseudos as input, exclude from the PWworkcahin or find a way around to inlcude muon site not present in the initial input structure
 #COMMENTS
 #CLEAN-UP
 #RE-LOGICING DUPLICATED CODES
@@ -11,16 +10,10 @@
 #----------------------------
 from aiida import orm
 from aiida.engine import ToContext, WorkChain, calcfunction,  workfunction
-from aiida.orm import AbstractCode, Int, Code, Str, Float, Bool, Group, List
-from aiida.orm import Dict, KpointsData, StructureData, ArrayData,load_code, load_group,load_node
-#from aiida.plugins.factories import CalculationFactory
-from aiida.plugins import CalculationFactory, WorkflowFactory, DataFactory
+from aiida.plugins import  DataFactory,CalculationFactory
 from aiida import load_profile
-from aiida.engine import run, submit, CalcJob, launch
-from aiida_quantumespresso.utils.mapping import prepare_process_inputs, update_mapping
+from aiida.engine import run, submit
 from aiida.common.extendeddicts import AttributeDict
-from aiida.orm.nodes.data.upf import get_pseudos_from_structure
-from aiida_pseudo.data.pseudo.upf import UpfData
 import numpy as np
 from aiida.engine import if_, while_, return_
 from supcgen import SCgenerators
@@ -29,62 +22,74 @@ load_profile()
 
 
 @calcfunction
-def gensup(aiida_structure):
-    py_struc=aiida_structure.get_pymatgen_structure()
-    py_SCstruc = py_struc.copy()
-    py_SCstruc.make_supercell([2,2,2])
-    py_SCstruc_mu = py_SCstruc.copy()
-    py_SCstruc_mu.append(species="H", coords=[0.125,0.125,0.125], coords_are_cartesian= False, validate_proximity=True)
-    StructureData = DataFactory('structure')
-    aiida_structure2 = StructureData(pymatgen = py_SCstruc_mu)
-    return aiida_structure2
-
-
-
-@calcfunction
 def init_supcgen(aiida_struc):
-    py_struc=aiida_struc.get_pymatgen_structure()
+    py_struc = aiida_struc.get_pymatgen_structure()
     #
     scg=SCgenerators(py_struc)
-    py_SCstruc_mu=scg.initialize()
+    py_SCstruc_mu, SC_matrix, mu_frac_coord =scg.initialize()
     #
-    StructureData = DataFactory('structure')
-    aiida_SCstruc = StructureData(pymatgen = py_SCstruc_mu)
-    
-    return aiida_SCstruc
-    
-    
+    aiida_SCstruc = orm.StructureData(pymatgen = py_SCstruc_mu)
+    scmat_node = orm.ArrayData()
+    scmat_node.set_array('SC_matrix', SC_matrix)
+    vor_node = orm.ArrayData()
+    vor_node.set_array('Voronoi_site', np.array(mu_frac_coord))
 
+    return {"SC_struc": aiida_SCstruc, "SCmat": scmat_node, "Vor_site": vor_node}
+    
 
 @calcfunction
-def re_init_supcgen(aiida_struc,aiida_SCstruc,iter_num):
-    py_struc=aiida_struc.get_pymatgen_structure()
-    py_SCstruc=aiida_SCstruc.get_pymatgen_structure()
+def re_init_supcgen(aiida_struc,aiida_SCstruc, vor_site, iter_num):
+    py_struc   = aiida_struc.get_pymatgen_structure()
+    py_SCstruc = aiida_SCstruc.get_pymatgen_structure()
+    #
+    mu_frac_coord = vor_site.get_array('Voronoi_site')
+    #
+    scg = SCgenerators(py_struc)
+    py_SCstruc_mu, SC_matrix = scg.re_initialize(py_SCstruc,mu_frac_coord,iter_num.value)
+    #
+    aiida_SCstructure = orm.StructureData(pymatgen = py_SCstruc_mu)
+    #
+    scmat_node = orm.ArrayData()
+    scmat_node.set_array('SC_matrix', SC_matrix)
     
-    #
-    scg=SCgenerators(py_struc)
-    py_SCstruc_mu=scg.re_initialize(py_SCstruc,mu_frac_coord,iter_num.value)
-    #
-    StructureData = DataFactory('structure')
-    aiida_SCstructure = StructureData(pymatgen = py_SCstruc_mu)
-    return aiida_SCstructure
+    return {"SC_struc": aiida_SCstructure, "SCmat": scmat_node}
+    
 
 #@workfunction
 @calcfunction
-def conv_achieved(aiida_structure,traj_out):
-    atm_forc=traj_out.get_array('forces')[0]
-    atm_forces=np.array(atm_forc)
-    ase_struc = aiida_structure.get_ase()
+def check_if_conv_achieved(aiida_structure,traj_out):
+    atm_forc   = traj_out.get_array('forces')[0]
+    atm_forces = np.array(atm_forc)
+    ase_struc  = aiida_structure.get_ase()
+
     #
-    csc=check_SC_convergence(ase_struc,atm_forces)
-    cond=csc.apply_first_crit()
-    cond2=csc.apply_2nd_crit()
+    csc   = check_SC_convergence(ase_struc,atm_forces)
+    cond  = csc.apply_first_crit()
+    cond2 = csc.apply_2nd_crit()
     #
-    BoolData = DataFactory('core.bool')
-    if cond==True and all(cond2):
-        return BoolData(True)
+    
+    if cond == True and all(cond2):
+        return orm.Bool(True)
     else:
-        return BoolData(False)
+        return orm.Bool(False)
+
+
+
+def get_pseudos(aiid_struc):
+    family  = orm.load_group('SSSP/1.2/PBE/efficiency')   #user pseudo fam
+    pseudos = family.get_pseudos(structure=aiid_struc)
+    return pseudos
+
+
+def get_kpoints(aiid_struc, k_density = None):
+    if k_density == None:   #remove the if and None later, default already defined in the main input
+        k_density = 0.401   #default less than normal for quick testing, 
+
+    kpoints = orm.KpointsData()
+    kpoints.set_cell_from_structure(aiid_struc)
+    kpoints.set_kpoints_mesh_from_density(k_density, force_parity = False)
+    
+    return kpoints
 
 
 PwCalculation = CalculationFactory('quantumespresso.pw')
@@ -95,8 +100,13 @@ class muSConvWorkChain(WorkChain):
     def define(cls, spec):
         """Specify inputs and outputs."""
         super().define(spec)
-        spec.input("structure", valid_type=orm.StructureData,required=True, help='Input initial structure')
-        spec.expose_inputs(PwCalculation, namespace='pwscf',exclude=('structure'))   #use the  pw calcjob
+        
+        spec.input("structure", valid_type = orm.StructureData,required = True, help = 'Input initial structure')
+        #spec.input('num_units', valid_type = orm.Int, default = lambda: orm.Int(2**3), required=False, help='Number of input unitcell units for the initial supercell') 
+        spec.input('kpoints_distance', valid_type = orm.Float, default = lambda: orm.Float(0.401), required = False,
+            help = 'The minimum desired distance in 1/Å between k-points in reciprocal space.') #copied from pwbaseworkchain
+
+        spec.expose_inputs(PwCalculation, namespace = 'pwscf',exclude = ('structure','pseudos','kpoints'))   #use the  pw calcjob
         
         spec.outline(cls.init_supcell_gen,
                      cls.run_pw_scf,
@@ -116,40 +126,53 @@ class muSConvWorkChain(WorkChain):
                     )
         
         
-
-        spec.output('Converged_supercell', valid_type=StructureData)
+        spec.output('Converged_supercell', valid_type = orm.StructureData, required = True)
+        spec.output('Converged_SCmatrix', valid_type = orm.ArrayData, required=True)
+        
         spec.exit_code(402, 'ERROR_SUB_PROCESS_FAILED_SCF',message='one of the PwCalculation subprocesses failed')
         spec.exit_code(702, 'ERROR_NUM_CONVERGENCE_ITER_EXCEEDED',message='Max number of supercell convergence reached ')
     
+
     def init_supcell_gen(self):
         self.ctx.n = 0
         self.ctx.max_it_n = 2 #decide in meeting
-        #self.ctx.sup_struc_mu,self.ctx.vor_site = init_supcgen(self.inputs.structure)
-        self.ctx.sup_struc_mu = init_supcgen(self.inputs.structure)
+        
+        result_ini = init_supcgen(self.inputs.structure)
+        
+        self.ctx.sup_struc_mu = result_ini["SC_struc"]
+        self.ctx.musite       = result_ini["Vor_site"]
+        self.ctx.sc_matrix    = result_ini["SCmat"]
+        
     
     def run_pw_scf(self):
         #
         inputs = AttributeDict(self.exposed_inputs(PwCalculation, namespace='pwscf'))
-        inputs.structure=self.ctx.sup_struc_mu
+        
+        inputs.structure = self.ctx.sup_struc_mu
+        inputs.pseudos   = get_pseudos(self.ctx.sup_struc_mu)
+        inputs.kpoints   = get_kpoints(self.ctx.sup_struc_mu,self.inputs.kpoints_distance.value)
+        
         
         running = self.submit(PwCalculation, **inputs)
         self.report(f'running SCF calculation {running.pk}')
-        #self.to_context(calculation_run=running)
         
         return ToContext(calculation_run=running)
     
+
+
     def inspect_run_get_forces(self):
         calculation = self.ctx.calculation_run
+        
         if not calculation.is_finished_ok:
             self.report('PwCalculation<{}> failed with exit status {}' .format(calculation.pk, calculation.exit_status))
             return self.exit_codes.ERROR_SUB_PROCESS_FAILED_SCF
         else:
-            
-            self.ctx.traj_out=calculation.outputs.output_trajectory
+
+            self.ctx.traj_out = calculation.outputs.output_trajectory
             
     def continue_iter(self):
         #check convergence and decide if to continue the loop
-        conv_res=conv_achieved(self.ctx.sup_struc_mu,self.ctx.traj_out)
+        conv_res = check_if_conv_achieved(self.ctx.sup_struc_mu,self.ctx.traj_out)
         return conv_res.value == False    
         ##This implies
         #if conv_res.value == False:
@@ -165,11 +188,15 @@ class muSConvWorkChain(WorkChain):
     
     
     def get_larger_cell(self):
-        self.ctx.sup_struc_mu = re_init_supcgen(
+        result_reini = re_init_supcgen(
             self.inputs.structure,
             self.ctx.sup_struc_mu,
+            self.ctx.musite,
             self.ctx.n
         )
+        
+        self.ctx.sup_struc_mu = result_reini["SC_struc"]
+        self.ctx.sc_matrix    = result_reini["SCmat"]
         
     
     def exit_max_iteration_exceeded(self):
@@ -180,12 +207,8 @@ class muSConvWorkChain(WorkChain):
     def set_outputs(self):
         self.report('Setting Outputs')
         self.out('Converged_supercell',self.ctx.sup_struc_mu)
-# END
-
-
-
-
-
+        self.out('Converged_SCmatrix', self.ctx.sc_matrix)
+        
 
 
 
@@ -193,22 +216,15 @@ from pymatgen.io.cif import CifParser
 if __name__ == '__main__':
     parser = CifParser("Si.cif")
     py_struc = parser.get_structures()[0]
-    StructureData = DataFactory('structure')
-    aiida_structure = StructureData(pymatgen = py_struc)
+    aiida_structure = orm.StructureData(pymatgen = py_struc)
 
 
     builder=muSConvWorkChain.get_builder()
     structure = aiida_structure
     builder.structure = structure
     codename = 'pw7_0@localhost_serial'
-    code = Code.get_from_string(codename)
-    #builder = code.get_builder()
-    builder.pwscf.code=code
-    #
-    family = load_group('SSSP/1.2/PBE/efficiency')
-    pseudos = family.get_pseudos(elements=('Si', 'H'))
-    #pseudos = family.get_pseudos(structure=structure)
-    builder.pwscf.pseudos = pseudos
+    code = orm.Code.get_from_string(codename)
+    builder.pwscf.code = code
 
     Dict = DataFactory('dict')
     parameters = {
@@ -237,16 +253,13 @@ if __name__ == '__main__':
 
     builder.pwscf.parameters = Dict(dict=parameters)
     #
-    KpointsData = DataFactory('array.kpoints')
-    kpoints = KpointsData()
-    kpoints.set_kpoints_mesh([1,1,1])
-    builder.pwscf.kpoints = kpoints
-    settings_dict={}
-    settings_dict={'gamma_only': True}
-    builder.pwscf.settings = Dict(dict=settings_dict)
     builder.pwscf.metadata.description = 'a PWscf  test SCF'
     builder.pwscf.metadata.options.resources = {'num_machines': 1, 'num_mpiprocs_per_machine' : 1}
     #
     results, node = run.get_node(builder)
-    node.exit_status #to check if the calculation was successful
-    print(results) # from #results, node = run.get_node(builder)
+    #node.exit_status #to check if the calculation was successful
+    #
+    #print(results) # from #results, node = run.get_node(builder)
+    #py_conv_struct=results['Converged_supercell'].get_pymatgen_structure()
+    #py_conv_struct.to(filename="supercell_withmu.cif".format())
+    #Sc_matrix=results['Converged_SCmatrix'].get_array('SC_matrix')
