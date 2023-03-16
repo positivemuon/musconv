@@ -19,5 +19,11 @@ To quickly run the code try:
 ```python musConv/chkconv.py examples/LiF_p1.cif examples/LiF_p1_forces.txt```
 
 
+#3--> musConv package can be downloaded and installed  using 
+```python setup.py install```
+
+#4 To run the the aiida-musConvworkschain, basic knowlwdge of aiida and requisite aiida-core, plugin  installation and setups are required. How to fix inputs for the workchain can be found in the workchain script. The workchain can be imported after successful installation.
+
+
 #TO DO
 iii) Do documentation
