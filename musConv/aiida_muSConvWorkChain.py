@@ -211,7 +211,10 @@ if __name__ == '__main__':
     builder=muSConvWorkChain.get_builder()
     structure = aiida_structure
     builder.structure = structure
-    codename = 'pw7_0@localhost_serial'
+    builder.kpoints_distance = orm.Float(0.401)
+
+    #N:B the pseudos and kpoints are no longer inputs, already taken care of in the workchain
+    codename = 'pw7_0@localhost_serial' #edit pw code name
     code = orm.Code.get_from_string(codename)
     builder.pwscf.code = code
 
@@ -246,9 +249,18 @@ if __name__ == '__main__':
     builder.pwscf.metadata.options.resources = {'num_machines': 1, 'num_mpiprocs_per_machine' : 1}
     #
     results, node = run.get_node(builder)
+    #or
+    #node = submit(builder)
     #node.exit_status #to check if the calculation was successful
-    #
+
+    # Get  converged supercell results with run
     #print(results) # from #results, node = run.get_node(builder)
     #py_conv_struct=results['Converged_supercell'].get_pymatgen_structure()
     #py_conv_struct.to(filename="supercell_withmu.cif".format())
     #Sc_matrix=results['Converged_SCmatrix'].get_array('SC_matrix')
+
+    #get results  with submit
+    #res=orm.load_node(node.pk)
+    #py_conv_struct=res.outputs['Converged_supercell'].get_pymatgen_structure()
+    #py_conv_struct.to(filename="supercell_withmu.cif".format())
+    #Sc_matrix=res.outputs['Converged_SCmatrix'].get_array('SC_matrix')
