@@ -1,29 +1,26 @@
 {
+    "name": "musConv",
     "author": "Ifeanyi John Onuorah",
-    "author_email": "", 
-    "download_url":"https://github.com/positivemuon/musConv/archive/refs/heads/main.zip",
+    "author_email": "",
+    "description": "Generate supercell and check supercell convergence with SCF forces",
+    "url": "https://github.com/positivemuon/musConv",
+    "license": "MIT",
     "classifiers": [
-        "License :: OSI Approved :: GNU General Public License (GPL)", 
-        "Programming Language :: Python :: 3.8", 
-        "Operating System :: OS Independent", 
-        "Topic :: Scientific/Engineering :: Physics",  
-    ], 
-    "description": "Generate supercell and check supercell convergence with SCF forces", 
-    "include_package_data": true,
-    "python_requires": ">=3.8",
-    "setup_requires": [
-    "reentry"
+        "License :: OSI Approved ::  MIT License", 
+        "Programming Language :: Python :: 3.8",
+        "Operating System :: OS Independent",
+        "Topic :: Scientific/Engineering :: Physics"
     ],
-  "reentry_register": true,
+    "version": "0.0.1",
+    "include_package_data": true,
+    "setup_requires": ["reentry"],
+    "reentry_register": true,
     "install_requires": [
         "pymatgen",
-        "pymatgen-analysis-defects",
+        "pymatgen-analysis-defects; python_version >= '3.8'",
         "ase",
         "numpy",
-        "scipy",
+        "scipy"
     ],
-    "extras_requires":{},
-    "license": "GNU General Public License (GPL)",
-    "name": "musConv",
-    "version": "0.0.1"
+    "extras_require": {}
 }
