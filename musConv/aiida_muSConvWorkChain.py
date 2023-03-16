@@ -11,14 +11,12 @@
 from aiida import orm
 from aiida.engine import ToContext, WorkChain, calcfunction,  workfunction
 from aiida.plugins import  DataFactory,CalculationFactory
-from aiida import load_profile
 from aiida.engine import run, submit
 from aiida.common.extendeddicts import AttributeDict
 import numpy as np
 from aiida.engine import if_, while_, return_
 from musConv.supcgen import SCgenerators
 from musConv.chkconv import check_SC_convergence
-load_profile()
 
 
 @calcfunction
@@ -211,7 +209,8 @@ class muSConvWorkChain(WorkChain):
         
 
 
-
+from aiida import load_profile
+load_profile()
 from pymatgen.io.cif import CifParser
 if __name__ == '__main__':
     parser = CifParser("Si.cif")
