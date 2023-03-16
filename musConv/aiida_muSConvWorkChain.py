@@ -1,13 +1,3 @@
-#ALOT OF WORK STILL HAVE TO BE DONE 
-#COMMENTS
-#CLEAN-UP
-#RE-LOGICING DUPLICATED CODES
-#MAKE PARSER, PLUGIN
-#RUN MORE EXAMPLES
-#RESTRUCTURE
-#BETTER VARIABLE AND CLASSES NAME
-#BUT THEN THE WORKCHAIN STRUCTURE/LOGIC WILL BE MUCH SIMILAR
-#----------------------------
 from aiida import orm
 from aiida.engine import ToContext, WorkChain, calcfunction,  workfunction
 from aiida.plugins import  DataFactory,CalculationFactory
