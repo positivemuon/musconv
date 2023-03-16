@@ -16,8 +16,8 @@ from aiida.engine import run, submit
 from aiida.common.extendeddicts import AttributeDict
 import numpy as np
 from aiida.engine import if_, while_, return_
-from supcgen import SCgenerators
-from chkconv import check_SC_convergence
+from musConv.supcgen import SCgenerators
+from musConv.chkconv import check_SC_convergence
 load_profile()
 
 
