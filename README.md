@@ -54,7 +54,7 @@ To run the the aiida-musConvworkschain, aiida-core, plugin installations and set
 If everything is up and the musConv package installed. It can be run using the following example
 (caveat: labels of code and pseudo have to be edited);
 
-```python run_aiidamusconv_Si_LiF.py```
+```python examples/run_aiidamusconv_Si_LiF.py```
 
 
 
