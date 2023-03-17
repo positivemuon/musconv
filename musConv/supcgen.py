@@ -50,9 +50,7 @@ class SCgenerators:
         ) 
         
         py_SCstruc = CST.apply_transformation(py_struc)
-        SC_matrix    = np.dot(py_SCstruc.lattice.matrix,py_struc.lattice.inv_matrix)
-        #SC_matrix   = np.array(SC_matrix).astype(int)
-        SC_matrix    = np.asarray(np.round_(SC_matrix), dtype = 'int')
+        SC_matrix  = CST.transformation_matrix
         
         return py_SCstruc, SC_matrix
     
@@ -225,6 +223,7 @@ if __name__ == "__main__":
     #initialize the caluclations
     py_SCstruc_mu2,SC_matrix,mu_frac_coord=sg.initialize()
     py_SCstruc_mu2.to(filename="positions.cif".format())
+    #print(SC_matrix)
     
     # while and if loop then depending on workchain usage
     #py_SCstruc_mu2,SC_matrix=sg.re_initialize(py_SCstruc_mu2,mu_frac_coord,iter_num)

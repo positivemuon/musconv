@@ -3,7 +3,7 @@ from ase.units import Bohr,Rydberg
 from scipy.optimize import curve_fit
 
 
-class check_SC_convergence:
+class chkSCconvergence:
     """
     Checks if a supercell (SC) size is converged for muon site calculations
     using results of atomic forces from a one shot SCF calculation.
@@ -210,7 +210,7 @@ if __name__ == "__main__":
     atf=np.loadtxt(args.atomic_forces)
     
     #call the func
-    csc   = check_SC_convergence(ase_struc,atf)
+    csc   = chkSCconvergence(ase_struc,atf)
     cond  = csc.apply_first_crit()
     cond2 = csc.apply_2nd_crit()
     print(f"Convergence of 1st criteria is {cond}, while 2nd criteria is {cond2}")

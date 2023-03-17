@@ -6,7 +6,7 @@ from aiida.common.extendeddicts import AttributeDict
 import numpy as np
 from aiida.engine import if_, while_, return_
 from musConv.supcgen import SCgenerators
-from musConv.chkconv import check_SC_convergence
+from musConv.chkconv import chkSCconvergence
 
 
 @calcfunction
@@ -51,7 +51,7 @@ def check_if_conv_achieved(aiida_structure,traj_out):
     ase_struc  = aiida_structure.get_ase()
 
     #
-    csc   = check_SC_convergence(ase_struc,atm_forces)
+    csc   = chkSCconvergence(ase_struc,atm_forces)
     cond  = csc.apply_first_crit()
     cond2 = csc.apply_2nd_crit()
     #
