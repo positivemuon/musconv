@@ -14,6 +14,7 @@ The scripts; what they do and usage:
 
 
 #1-->supcgen.py
+
 Generates a nearly cubic supercell (SC) using the pymatgens [CubicSupercellTransformation](https://pymatgen.org/pymatgen.transformations.advanced_transformations.html).
 Inserts an intersitial atom (default is hydrogen) in the supercell 
 at a Voronoi interstitial site. One of it methods initializes the 
@@ -27,9 +28,8 @@ To quickly run the script if installed import the class, when not installed try:
 
 
 
-
-
 #2-->chkconv.py
+
 This script checks if a supercell (SC) size is converged for muon site calculations
 using results of unrelaxed atomic forces from a one shot DFT SCF calculation 
 or other potential. Structure input is an ase Atom data while forces as array data.
@@ -41,9 +41,8 @@ To quickly run the script if installed import the class, when not installed try:
 
 
 
-
-
 #3-->aiida_muSConvWorkChain.py
+
 This script contains the musConvworkschain class to be used in [AiiDA](www.aiida.net)
 for generating converged supercell structure and/or its transformation matrix. It does this 
 by performing supercell size convergence checks against unrelaxed atomic forces; SCF DFT calculations 
@@ -57,4 +56,5 @@ If everything is up and the musConv package installed. It can be run using the f
 
 
 #TO DO
+
 iii) improve documentation
