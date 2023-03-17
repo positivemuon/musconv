@@ -11,7 +11,7 @@ At the moment, the musConv package can be downloaded and installed  using:
 The scripts; what they do and usage:
 
 
-
+#----------------------------------------------------------------------------------------------------------------------------------
 
 #1-->supcgen.py
 
@@ -27,6 +27,8 @@ To quickly run the script if installed import the class, when not installed try:
 
 
 
+#----------------------------------------------------------------------------------------------------------------------------------
+
 
 #2-->chkconv.py
 
@@ -39,6 +41,8 @@ To quickly run the script if installed import the class, when not installed try:
 ```python musConv/chkconv.py examples/LiF_p1.cif examples/LiF_p1_forces.txt```
 
 
+
+#----------------------------------------------------------------------------------------------------------------------------------
 
 
 #3-->aiida_muSConvWorkChain.py
@@ -55,6 +59,9 @@ If everything is up and the musConv package installed. It can be run using the f
 ```python run_aiidamusconv_Si_LiF.py```
 
 
+
+#----------------------------------------------------------------------------------------------------------------------------------
+****
 #TO DO
 
 iii) improve documentation
