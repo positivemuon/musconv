@@ -133,6 +133,7 @@ class muSConvWorkChain(WorkChain):
         
         spec.exit_code(402, 'ERROR_SUB_PROCESS_FAILED_SCF',message = 'one of the PwCalculation subprocesses failed')
         spec.exit_code(702, 'ERROR_NUM_CONVERGENCE_ITER_EXCEEDED',message = 'Max number of supercell convergence reached ')
+        spec.exit_code(704, 'ERROR_FITTING_FORCES_TO_EXPONENTIAL',message = 'Error in fitting the forces to an exponential')
     
     def init_supcell_gen(self):
         self.ctx.n = 0
@@ -170,8 +171,12 @@ class muSConvWorkChain(WorkChain):
 
 
     def continue_iter(self):
-        conv_res = check_if_conv_achieved(self.ctx.sup_struc_mu,self.ctx.traj_out)
-        return conv_res.value == False    
+        try:
+            conv_res = check_if_conv_achieved(self.ctx.sup_struc_mu,self.ctx.traj_out)
+            return conv_res.value == False
+        except:
+            self.report('Exiting muSConvWorkChain,Error in fitting the forces of supercell (iteration no. <{}>) to an exponential, maybe force data not exponential' .format(self.ctx.n))
+            return self.exit_codes.ERROR_FITTING_FORCES_TO_EXPONENTIAL
 
     
     def increment_n_by_one(self):
