@@ -100,10 +100,9 @@ class muSConvWorkChain(WorkChain):
         
         spec.input("structure", valid_type = orm.StructureData, required = True, 
                    help = 'Input initial structure')
-        #spec.input('num_units', valid_type = orm.Int, default = lambda: orm.Int(2**3), required=False, help='Number of input unitcell units for the initial supercell')
         spec.input('min_length', valid_type = orm.Float, default = lambda: None, required = False, 
                    help = 'The minimum length of the smallest lattice vector for the first generated supercell ')
-        spec.input('max_iter_num', valid_type = orm.Int, default = lambda: orm.Int(2), required=False, 
+        spec.input('max_iter_num', valid_type = orm.Int, default = lambda: orm.Int(4), required=False, 
                    help='Maximum number of iteration in the supercell convergence loop')  
         spec.input('kpoints_distance', valid_type = orm.Float, default = lambda: orm.Float(0.401), required = False, 
                    help = 'The minimum desired distance in 1/Å between k-points in reciprocal space.')
