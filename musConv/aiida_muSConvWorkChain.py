@@ -1,5 +1,5 @@
 from aiida import orm
-from aiida.engine import ToContext, WorkChain, calcfunction,  workfunction
+from aiida.engine  import ToContext, WorkChain, calcfunction,  workfunction
 from aiida.plugins import  DataFactory,CalculationFactory
 from aiida.engine import run, submit
 from aiida.common.extendeddicts import AttributeDict
@@ -10,13 +10,13 @@ from musConv.chkconv import chkSCconvergence
 
 
 @calcfunction
-def init_supcgen(aiida_struc):
+def init_supcgen(aiida_struc, min_length):
     """An aiida calc function that initializes supercell generation"""
     py_struc = aiida_struc.get_pymatgen_structure()
     
     """Calls the supercell (SC) generation class"""
     scg = SCgenerators(py_struc)
-    py_SCstruc_mu, SC_matrix, mu_frac_coord =scg.initialize()
+    py_SCstruc_mu, SC_matrix, mu_frac_coord = scg.initialize(min_length.value)
     
     aiida_SCstruc = orm.StructureData(pymatgen = py_SCstruc_mu)
     
@@ -26,8 +26,8 @@ def init_supcgen(aiida_struc):
     vor_node = orm.ArrayData()
     vor_node.set_array('Voronoi_site', np.array(mu_frac_coord))
 
-    return {"SC_struc":aiida_SCstruc,
-            "SCmat": scmat_node,
+    return {"SC_struc": aiida_SCstruc,
+            "SCmat"   : scmat_node,
             "Vor_site": vor_node
            }
     
@@ -35,20 +35,19 @@ def init_supcgen(aiida_struc):
 @calcfunction
 def re_init_supcgen(aiida_struc,
                     aiida_SCstruc,
-                    vor_site,
-                    iter_num
+                    vor_site
                    ):
     """An aiida calc function that re-initializes larger supercell generation"""
     
     py_struc   = aiida_struc.get_pymatgen_structure()
     py_SCstruc = aiida_SCstruc.get_pymatgen_structure()
-    #print(vor_site)
+    
     mu_frac_coord = vor_site.get_array('Voronoi_site')
-    #print(mu_frac_coord)
+    
     
     """Calls the supercell (SC) generation class"""
     scg = SCgenerators(py_struc)
-    py_SCstruc_mu, SC_matrix = scg.re_initialize(py_SCstruc,mu_frac_coord,iter_num.value)
+    py_SCstruc_mu, SC_matrix = scg.re_initialize(py_SCstruc, mu_frac_coord)
     
     aiida_SCstructure = orm.StructureData(pymatgen = py_SCstruc_mu)
     
@@ -58,7 +57,6 @@ def re_init_supcgen(aiida_struc,
     return {"SC_struc": aiida_SCstructure, "SCmat": scmat_node}
     
 
-#@workfunction
 @calcfunction
 def check_if_conv_achieved(aiida_structure, traj_out):
     """An aiida calc function that checks if a supercell is converged 
@@ -102,7 +100,11 @@ class muSConvWorkChain(WorkChain):
         
         spec.input("structure", valid_type = orm.StructureData, required = True, 
                    help = 'Input initial structure')
-        #spec.input('num_units', valid_type = orm.Int, default = lambda: orm.Int(2**3), required=False, help='Number of input unitcell units for the initial supercell') 
+        #spec.input('num_units', valid_type = orm.Int, default = lambda: orm.Int(2**3), required=False, help='Number of input unitcell units for the initial supercell')
+        spec.input('min_length', valid_type = orm.Float, default = lambda: None, required = False, 
+                   help = 'The minimum length of the smallest lattice vector for the first generated supercell ')
+        spec.input('max_iter_num', valid_type = orm.Int, default = lambda: orm.Int(2), required=False, 
+                   help='Maximum number of iteration in the supercell convergence loop')  
         spec.input('kpoints_distance', valid_type = orm.Float, default = lambda: orm.Float(0.401), required = False, 
                    help = 'The minimum desired distance in 1/Å between k-points in reciprocal space.')
         spec.input('pseudofamily', valid_type = orm.Str, default = lambda: orm.Str('SSSP/1.2/PBE/efficiency'), required = False, 
@@ -137,9 +139,13 @@ class muSConvWorkChain(WorkChain):
     
     def init_supcell_gen(self):
         self.ctx.n = 0
-        self.ctx.max_it_n = 2 #decide in meeting
+
+
+        if self.inputs.min_length == None:
+            m_l = min(self.inputs.structure.get_pymatgen_structure().lattice.abc)+1
+            self.inputs.min_length = orm.Float(m_l)
         
-        result_ini = init_supcgen(self.inputs.structure)
+        result_ini = init_supcgen(self.inputs.structure, self.inputs.min_length)
         
         self.ctx.sup_struc_mu = result_ini["SC_struc"]
         self.ctx.musite       = result_ini["Vor_site"]
@@ -183,15 +189,14 @@ class muSConvWorkChain(WorkChain):
         self.ctx.n += 1
         
     def iteration_num_not_exceeded(self): 
-        return self.ctx.n <= self.ctx.max_it_n
+        return self.ctx.n <= self.inputs.max_iter_num.value
     
     
     def get_larger_cell(self):
         result_reini = re_init_supcgen(
             self.inputs.structure,
             self.ctx.sup_struc_mu,
-            self.ctx.musite,
-            self.ctx.n
+            self.ctx.musite
         )
         
         self.ctx.sup_struc_mu = result_reini["SC_struc"]
@@ -199,7 +204,7 @@ class muSConvWorkChain(WorkChain):
         
     
     def exit_max_iteration_exceeded(self):
-        self.report('Exiting muSConvWorkChain, Coverged supercell NOT achieved, next iter num <{}> is greater than max iteration number {}' .format(self.ctx.n, self.ctx.max_it_n))
+        self.report('Exiting muSConvWorkChain, Coverged supercell NOT achieved, next iter num <{}> is greater than max iteration number {}' .format(self.ctx.n, self.inputs.max_iter_num.value))
         return self.exit_codes.ERROR_NUM_CONVERGENCE_ITER_EXCEEDED
         
     

@@ -9,19 +9,21 @@ from pymatgen.io.cif import CifParser
 
 
 if __name__ == '__main__':
-    parser = CifParser("Si.cif")
-    py_struc = parser.get_structures()[0]
+    parser = CifParser("LiF.cif")
+    py_struc = parser.get_structures(primitive = True)[0]
     aiida_structure = orm.StructureData(pymatgen = py_struc)
 
 
-    builder=muSConvWorkChain.get_builder()
+    builder = muSConvWorkChain.get_builder()
     structure = aiida_structure
     builder.structure = structure
-    builder.kpoints_distance = orm.Float(0.401)
-    builder.pseudofamily = orm.Str('SSSP/1.2/PBE/efficiency')
+    #builder.max_iter_num = orm.Int(3)                  #optional
+    #builder.min_length = orm.Float(5.2)                #optional
+    #builder.kpoints_distance = orm.Float(0.401)        #optional
+    #builder.pseudofamily = orm.Str('SSSP/1.2/PBE/efficiency') #optional depending if the label is same
 
     """N:B the pseudos and kpoints are no longer inputs in pwworkchain, 
-       already taken care of in the workchain
+       already taken care of in the musConvworkchain
     """
 
     codename = 'pw7_0@localhost_serial' #edit pw code name

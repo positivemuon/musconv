@@ -46,24 +46,13 @@ class SCgenerators:
             min_atoms  = min_atoms,
             max_atoms  = max_atoms,
             min_length = min_length,
-            force_diagonal = True
+            force_diagonal = False
         ) 
         
         py_SCstruc = CST.apply_transformation(py_struc)
         SC_matrix  = CST.transformation_matrix
         
         return py_SCstruc, SC_matrix
-    
-    
-    """PS: func below not used within the class and can be removed if not necessary in future!"""
-    @staticmethod
-    def gen_SC_from_grid(py_struc, SC_matrix):
-        """
-        Function that generates supercell structure for a given grid size.
-        """
-        py_SCstruc = py_struc.copy()
-        py_SCstruc.make_supercell(SC_matrix)
-        return py_SCstruc
 
     
     
@@ -83,7 +72,7 @@ class SCgenerators:
         
         """
         
-        mu_frac_coord_SC  = np.dot(mu_frac_coord,np.linalg.inv(SC_matrix))
+        mu_frac_coord_SC  = (np.dot(mu_frac_coord,np.linalg.inv(SC_matrix)))%1
         py_SCstruc_withmu = py_SCstruc.copy()
         
         """ what if a H specie is in the structure object? """
@@ -105,11 +94,12 @@ class SCgenerators:
     def __init__(self,py_struc):
         
         self.py_struc       = py_struc
+        self.max_atoms      = np.Inf
         #self.py_SCstruc     = None
         #self.mu_frac_coord  = None
     
     
-    def initialize(self):
+    def initialize(self, min_length: float = None):
         """
         This func initializes the first supercell (SC) generation
         with the following conditions;
@@ -117,29 +107,27 @@ class SCgenerators:
         min_atoms  : number of atoms in the given struc + 1 
         max_atoms  : number of atoms in the given struc*(2**3)
                     This limits the SC generation to 8 times of the given cell.            
-        min_length : Min length of the smallest SC lattice vector + 1
+        min_length : Min length of the smallest SC lattice vector 
         
         Returns: 
             A Pymatgen supercell structure that has the muon as a H atom at a Voronoi site
         """
         
         min_atoms  = self.py_struc.num_sites+1   
-        max_atoms  = self.py_struc.num_sites*(2**3)
-        min_length = np.min(self.py_struc.lattice.abc)+1
+        min_length = min_length or np.min(self.py_struc.lattice.abc)+1 
+
+        if min_length < np.min(self.py_struc.lattice.abc):
+            raise Exception(
+                ' Provided supercell min_length is less than the length of the smallest input cell lattice vector'
+                ) 
 
         py_SCstruc,SC_matrix = self.gen_nearcubic_SC(
             self.py_struc,
             min_atoms,
-            max_atoms,
+            self.max_atoms,
             min_length
         )
         
-        
-        """ This check will be out after testing as max_atom_num is not user defined"""
-        if min_atoms-1 >= py_SCstruc.num_sites:
-            raise Exception(
-                'Supercell not created: Revisit the SC max_atom_num and min_length conditions.'
-            ) 
         
         """ get a Voronoi interstitial site for the muon impurity, CALL NICHE?  """
         vig = VoronoiInterstitialGenerator()
@@ -152,7 +140,7 @@ class SCgenerators:
         
         return py_SCstruc_with_mu,SC_matrix,mu_frac_coord
     
-    def re_initialize(self,py_SCstruc_with_mu, mu_frac_coord, iter_num): 
+    def re_initialize(self,py_SCstruc_with_mu, mu_frac_coord): 
         """
         This function re-initializes the generation of a larger supercell-size in a loop 
         when a condition is not met after the first initialization above.
@@ -164,26 +152,17 @@ class SCgenerators:
             A Pymatgen supercell structure that has the muon as a H atom at a Voronoi site
         """
         
-        min_atoms  = py_SCstruc_with_mu.num_sites
-        max_atoms  = self.py_struc.num_sites*((2+iter_num)**3)
+        min_atoms  = py_SCstruc_with_mu.num_sites+1
         min_length = np.min(py_SCstruc_with_mu.lattice.abc)+1
         
-        
-        """ This check will be out after testing"""
-        if min_atoms > max_atoms:
-            raise ValueError('min_atoms > max_atom while re-generating supercell, check (restart_num).')
         
         py_SCstruc,SC_matrix = self.gen_nearcubic_SC(
             self.py_struc,
             min_atoms,
-            max_atoms,
+            self.max_atoms,
             min_length
         )
 
-        """ This check will be out after testing"""
-        if min_atoms-1 >= py_SCstruc.num_sites:
-            raise Exception('Supercell not created: Revisit the SC max_atom_num and min_length conditions.') 
-        
 
         py_SCstruc_with_mu = self.append_muon_to_SC(
             py_SCstruc,
@@ -203,17 +182,17 @@ from pymatgen.core import Structure
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Generate nearly cubic supercell")
     parser.add_argument(
-        "--iter_num",
+        "--min_length",
         metavar="N",
-        type=int,
-        default=1,
-        help="iteration number in the supercell convergence loop",
+        type=float,
+        default=None,
+        help="Min length of the smallest SC lattice vector",
     )
     parser.add_argument("input_structure")
     
     args = parser.parse_args()
     
-    iter_num = args.iter_num
+    min_length = args.min_length
     
     # load structure with pymatgen
     py_struc = Structure.from_file(args.input_structure)
@@ -221,9 +200,10 @@ if __name__ == "__main__":
     sg    = SCgenerators(py_struc)
     
     #initialize the caluclations
+    #py_SCstruc_mu2,SC_matrix,mu_frac_coord=sg.initialize(min_length)
     py_SCstruc_mu2,SC_matrix,mu_frac_coord=sg.initialize()
     py_SCstruc_mu2.to(filename="positions.cif".format())
     #print(SC_matrix)
     
     # while and if loop then depending on workchain usage
-    #py_SCstruc_mu2,SC_matrix=sg.re_initialize(py_SCstruc_mu2,mu_frac_coord,iter_num)
+    #py_SCstruc_mu2,SC_matrix=sg.re_initialize(py_SCstruc_mu2,mu_frac_coord)

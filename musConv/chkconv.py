@@ -23,15 +23,7 @@ class chkSCconvergence:
         Inverse of the exp func
         """
         return np.log(y_C/A)/(-B)
-    
-    
-    @staticmethod
-    def fit_curve(e_fnc,xdata,ydata):
-        """
-        Function for curve fitting
-        """
-        parameters, covariance = curve_fit(e_fnc, xdata, ydata)
-        return parameters, covariance
+
     
     
     def __init__(
@@ -59,7 +51,7 @@ class chkSCconvergence:
         mnasf          : Int   -->  Minimum number of atoms sufficient for fit               
         """
         
-        self.ase_struc = ase_struc
+        self.ase_struc       = ase_struc
         self.atomic_forces   = atomic_forces 
         self.mu_num_spec     = mu_num_spec 
         self.conv_thr        = conv_thr 
@@ -134,8 +126,7 @@ class chkSCconvergence:
                 specie_force = [self.atm_forces_mag[i] for i in specie_index if self.atm_forces_mag[i] < self.max_force_thr]
 
                 try:
-                    par,cov  = self.fit_curve(self.exp_fnc,specie_dist, specie_force)
-                    print(par,np.sqrt(np.diag(cov)))
+                    par,cov  = curve_fit(self.exp_fnc,specie_dist, specie_force)
                 except:
                     raise Exception("Check force data, maybe the data does not decay exponentially")
 
@@ -143,7 +134,9 @@ class chkSCconvergence:
                 """fit  and data check, better conditions?"""
                 stder= np.sqrt(np.diag(cov))   
                 if stder[0] > par[0] or stder[1] > par[1]:
-                    raise Exception("Check force data and fit, maybe the data does not decay exponentialy")
+                    print("Check force data and fit, maybe the data does not decay exponentially")
+                    cond.append(False)
+                    #raise Exception("Check force data and fit, maybe the data does not decay exponentialy")
                 
                 """find min distance  required for convergence"""
                 min_conv_dist = self.min_SCconv_dist(self.conv_thr,par[0],par[1]) 
