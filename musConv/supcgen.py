@@ -131,7 +131,9 @@ class SCgenerators:
         
         """ get a Voronoi interstitial site for the muon impurity, CALL NICHE?  """
         vig = VoronoiInterstitialGenerator()
-        mu_frac_coord = list(vig._get_candidate_sites(self.py_struc))[0][0]    
+        mu_frac_coord = list(vig._get_candidate_sites(self.py_struc))[0][0]
+        """Added 0.001 to move the impurity site from symmetric position"""
+        mu_frac_coord = [x + 0.001 for x in mu_frac_coord]    
         
         py_SCstruc_with_mu = self.append_muon_to_SC(
             py_SCstruc,
