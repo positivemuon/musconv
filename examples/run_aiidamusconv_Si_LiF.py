@@ -26,7 +26,7 @@ if __name__ == '__main__':
        already taken care of in the musConvworkchain
     """
 
-    codename = 'pw7_0@localhost_serial' #edit pw code name
+    codename = 'pw7_0@localhost_serial1' #edit pw code name
     code = orm.Code.get_from_string(codename)
     builder.pwscf.code = code
 
@@ -60,13 +60,14 @@ if __name__ == '__main__':
     builder.pwscf.metadata.description = 'a PWscf  test SCF'
     builder.pwscf.metadata.options.resources = {'num_machines': 1, 'num_mpiprocs_per_machine' : 1}
     #
-    results, node = run.get_node(builder)
+    #results, node = run.get_node(builder)
+    
+    
+    #or
+    node = submit(builder)
+    #node.exit_status #to check if the calculation was successful
     
     """
-    #or
-    #node = submit(builder)
-    #node.exit_status #to check if the calculation was successful
-
     # Get  converged supercell results with run
     #print(results) # from #results, node = run.get_node(builder)
     #py_conv_struct=results['Converged_supercell'].get_pymatgen_structure()

@@ -137,7 +137,7 @@ class muSConvWorkChain(WorkChain):
         spec.exit_code(704, 'ERROR_FITTING_FORCES_TO_EXPONENTIAL',message = 'Error in fitting the forces to an exponential')
     
     def init_supcell_gen(self):
-        self.ctx.n = 0
+        self.ctx.n = 1
 
 
         if self.inputs.min_length == None:

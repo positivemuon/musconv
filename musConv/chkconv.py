@@ -33,7 +33,7 @@ class chkSCconvergence:
         mu_num_spec:  int or str   = 1 or 'H',
         conv_thr:     float = 1e-03*Rydberg/Bohr, #from au to eV/A
         max_force_thr:float = 0.06*Rydberg/Bohr,   #from au to eV/A
-        mnasf        : int  = 5
+        mnasf        : int  = 4
     ):
         
         """
@@ -87,8 +87,8 @@ class chkSCconvergence:
         (SC) is less than the force convergence threshold
         """
         
-        # remove forces on muon
-        no_mu_atm_forces_mag1 = [v for i,v in enumerate(self.atm_forces_mag) if i !=self.mu_id] 
+        # remove forces on muon  and 0. forces at boundary due to symmetry if present
+        no_mu_atm_forces_mag1 = [v for i,v in enumerate(self.atm_forces_mag) if i != self.mu_id and v != 0.] 
         
         if min(no_mu_atm_forces_mag1) < self.conv_thr: 
             print("First SC convergence Criteria achieved")
@@ -108,7 +108,7 @@ class chkSCconvergence:
         """    
         atm_indxes = [atom.index for atom in self.ase_struc] 
         
-        atm_dist   = self.ase_struc.get_distances(self.mu_id, atm_indxes, mic=True, vector=False) 
+        atm_dist   = self.ase_struc.get_distances(self.mu_id, atm_indxes, mic = True, vector = False) 
         
         specie_num = len(set(self.ase_struc.numbers))  
         specie_set = set(self.ase_struc.get_chemical_symbols()) 
@@ -121,22 +121,26 @@ class chkSCconvergence:
         for i in range(0,specie_num-1):
             specie_index = [atom.index for atom in self.ase_struc if atom.symbol == specie_set[i]]
             
-            if len(specie_index) > self.mnasf:
-                specie_dist  = [atm_dist[i] for i in specie_index if self.atm_forces_mag[i] < self.max_force_thr] 
-                specie_force = [self.atm_forces_mag[i] for i in specie_index if self.atm_forces_mag[i] < self.max_force_thr]
+            if len(specie_index) >= self.mnasf:
+                specie_dist  = [atm_dist[i] for i in specie_index if self.atm_forces_mag[i] < self.max_force_thr and self.atm_forces_mag[i] != 0.] 
+                specie_force = [self.atm_forces_mag[i] for i in specie_index if self.atm_forces_mag[i] < self.max_force_thr and self.atm_forces_mag[i] != 0.]
 
                 try:
                     par,cov  = curve_fit(self.exp_fnc,specie_dist, specie_force)
-                except:
-                    raise Exception("Check force data, maybe the data does not decay exponentially")
+                except (ValueError, RuntimeError) as err:           
+                    #raise Exception("Check force data, maybe the data does not decay exponentially")
+                    print("Check force data, maybe the data does not decay exponentially with:", err)
+                    cond.append(False)
+                    continue
 
                 
                 """fit  and data check, better conditions?"""
                 stder= np.sqrt(np.diag(cov))   
                 if stder[0] > par[0] or stder[1] > par[1]:
-                    print("Check force data and fit, maybe the data does not decay exponentially")
+                    print(f"Check force data and fit on specie {specie_set[i]}, maybe does not decay exponentially")
                     cond.append(False)
-                    #raise Exception("Check force data and fit, maybe the data does not decay exponentialy")
+                    continue
+                    
                 
                 """find min distance  required for convergence"""
                 min_conv_dist = self.min_SCconv_dist(self.conv_thr,par[0],par[1]) 
@@ -153,7 +157,9 @@ class chkSCconvergence:
                     
             else:
                 print('The current SC size is NOT sufficient for convergence checks on specie--> {}'.format(specie_set[i]))
-                cond.append(False)
+        
+        if not cond:
+            cond.append(False)
                 
         return cond
 
