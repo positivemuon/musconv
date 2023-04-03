@@ -6,7 +6,7 @@
     "url": "https://github.com/positivemuon/musConv",
     "license": "MIT",
     "classifiers": [
-        "License :: OSI Approved ::  MIT License", 
+        "License :: OSI Approved :: MIT License", 
         "Programming Language :: Python :: 3.8",
         "Operating System :: OS Independent",
         "Topic :: Scientific/Engineering :: Physics"
