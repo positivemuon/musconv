@@ -1,5 +1,9 @@
 # musConv
 
+|     | |
+|-----|----------------------------------------------------------------------------|
+|Latest release| [![PyPI version](https://badge.fury.io/py/musConv.svg)](https://badge.fury.io/py/musConv) [![PyPI pyversions](https://img.shields.io/github/license/positivemuon/musConv.svg)](https://pypi.org/project/musConv/) |
+
 The musConv package is a python package including an [AiiDA](www.aiida.net) workchain for generating a converged supercell for and interstitial defect calculation e.g for muon calculations. 
 
 The main package contains three scripts (classes), two of which are independent and can be used separately and the third an [AiiDA](www.aiida.net) workchain.
