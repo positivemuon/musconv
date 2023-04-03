@@ -8,6 +8,10 @@ At the moment, the musConv package can be downloaded and installed  using:
 
 ```python setup.py install```
 
+or with [pypi](https://pypi.org/project/musConv/0.0.1/) using;
+
+```pip install musConv```
+
 The scripts; what they do and usage:
 
 
