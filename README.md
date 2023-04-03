@@ -1,20 +1,37 @@
 # musConv
 
+musConv is a python package for generating near cubic supercells and for checking the convergence of a supercell siz with respect to atomic forces induced by an interstitial impurity at a Voronoi site.
+
 |     | |
 |-----|----------------------------------------------------------------------------|
 |Latest release| [![PyPI version](https://badge.fury.io/py/musConv.svg)](https://badge.fury.io/py/musConv) [![License](https://img.shields.io/github/license/positivemuon/musConv.svg)](https://pypi.org/project/musConv/) |
 
-The musConv package is a python package including an [AiiDA](www.aiida.net) workchain for generating a converged supercell for and interstitial defect calculation e.g for muon calculations. 
+## Installation
+1.) Install from [pypi](https://pypi.org/project/musConv/0.0.1/) as;
+
+```pip install musConv```
+
+
+2.) Install the repository as:
+
+```
+git clone [https://github.com/positivemuon/aiida-musConv.git](https://github.com/positivemuon/musConv.git)
+cd musConv/
+python setup.py install
+```
+
+
+
+## Available Scripts
+```
+musConv/
+    ├── __init__.py
+    └── supcgen.py
+    └── chkconv.py
+```
 
 The main package contains three scripts (classes), two of which are independent and can be used separately and the third an [AiiDA](www.aiida.net) workchain.
 
-At the moment, the musConv package can be downloaded and installed  using:
-
-```python setup.py install```
-
-or with [pypi](https://pypi.org/project/musConv/0.0.1/) using;
-
-```pip install musConv```
 
 The scripts; what they do and usage:
 
