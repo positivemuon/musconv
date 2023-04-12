@@ -30,13 +30,13 @@ musConv/
     └── chkconv.py
 ```
 
-## i.) supcgen.py 
+## i.) supcgen.py
 
-Generates a nearly cubic supercell (SC) using the pymatgens [CubicSupercellTransformation](https://pymatgen.org/pymatgen.transformations.advanced_transformations.html). Inserts an intersitial atom (default is hydrogen) in the supercell 
-at a Voronoi interstitial site. One of it methods initializes the  supercell generation and the other re-initializes generation of a 
+Generates a nearly cubic supercell (SC) using the pymatgens [CubicSupercellTransformation](https://pymatgen.org/pymatgen.transformations.advanced_transformations.html). Inserts an intersitial atom (default is hydrogen) in the supercell
+at a Voronoi interstitial site. One of it methods initializes the  supercell generation and the other re-initializes generation of a
 larger supercell-size than the former.
 
-To quickly run the script if installed try; 
+To quickly run the script if installed try;
 
  ```python examples/run_supcgen.py```
 
@@ -45,10 +45,10 @@ when not installed try:
 ```python musConv/supcgen.py examples/LiF.cif```
 
 
-## ii.) chkconv.py 
+## ii.) chkconv.py
 
 This script checks if a supercell (SC) size is converged for muon site calculations
-using results of unrelaxed atomic forces from a one shot DFT SCF calculation 
+using results of unrelaxed atomic forces from a one shot DFT SCF calculation
 or other potential. Structure input is an ase Atom data while forces as array data.
 
 To quickly run the script if installed try;
@@ -62,4 +62,3 @@ or
 when not installed try:
 
 ```python musConv/chkconv.py examples/LiF_p1.cif examples/LiF_p1_forces.txt```
-
