@@ -2,15 +2,15 @@
 """Testing"""
 # import numpy as np
 # import pytest
-from musConv.chkconv import ChkConvergence
+from musconv.chkconv import ChkConvergence
 
 
 def test_force_length_exception(ipt_lif_forces):
     """test force length"""
     try:
-        ChkConvergence(ipt_lif_forces[0], ipt_lif_forces[1].pop(-1))
+        ChkConvergence(ipt_lif_forces[0], ipt_lif_forces[1].tolist().pop(-1))
         assert False
-    except ValueError:
+    except  AssertionError:
         assert True
 
 

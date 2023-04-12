@@ -7,7 +7,7 @@ musconv is a python package for generating near cubic supercells and for checkin
 |Latest release| [![PyPI version](https://badge.fury.io/py/musConv.svg)](https://badge.fury.io/py/musConv) [![License](https://img.shields.io/github/license/positivemuon/musConv.svg)](https://pypi.org/project/musConv/) |
 
 ## Installation
-1.) Install from [pypi](https://pypi.org/project/musConv/0.0.1/) as;
+1.) Install from [pypi](https://pypi.org/project/musconv/0.0.2/) as;
 
 ```pip install musconv```
 
