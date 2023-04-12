@@ -1,5 +1,5 @@
 {
-    "name": "musConv",
+    "name": "musconv",
     "author": "Ifeanyi John Onuorah",
     "author_email": "",
     "description": "Generate supercell and check supercell convergence with SCF forces",
