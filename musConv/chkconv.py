@@ -7,25 +7,25 @@ from ase.units import Bohr, Rydberg
 from scipy.optimize import curve_fit
 
 
-class chkconvergence:
+class ChkConvergence:
     """
     Checks if a supercell (SC) size is converged for muon site calculations
     using results of atomic forces from a one shot SCF calculation.
     """
 
     @staticmethod
-    def exp_fnc(xdata, A, B):
+    def exp_fnc(xdata, amp, tau):
         """
         An exponential decay function with;
         """
-        return A * np.exp(-B * xdata)
+        return amp * np.exp(-tau * xdata)
 
     @staticmethod
-    def min_SCconv_dist(y_C, A, B):
+    def min_sconv_dist(y_c, amp, tau):
         """
         Inverse of the exp func
         """
-        return np.log(y_C / A) / (-B)
+        return np.log(y_c / amp) / (-tau)
 
     def __init__(
         self,
@@ -62,7 +62,7 @@ class chkconvergence:
             self.atomic_forces
         ), "No. of atoms not equal to number of forces"
 
-        """ Check and get muon index"""
+        # Check and get muon index
         if (
             isinstance(self.mu_num_spec, int)
             and self.mu_num_spec in self.ase_struc.numbers
@@ -84,12 +84,12 @@ class chkconvergence:
             )
 
         if len(mu_idd) > 1:
-            raise Exception(
+            raise ValueError(
                 "Provided muon specie or atomic number has more than one muon in the structure"
             )
         self.mu_id = mu_idd[0]
 
-        """magnitude of atomic forces"""
+        # magnitude of atomic forces
         self.atm_forces_mag = [np.sqrt(x.dot(x)) for x in self.atomic_forces]
 
     def apply_first_crit(self):
@@ -156,7 +156,6 @@ class chkconvergence:
                 try:
                     par, cov = curve_fit(self.exp_fnc, specie_dist, specie_force)
                 except (ValueError, RuntimeError) as err:
-                    # raise Exception("Check force data, maybe the data does not decay exponentially")
                     print(
                         "Check force data, maybe the data does not decay exponentially with:",
                         err,
@@ -164,38 +163,37 @@ class chkconvergence:
                     cond.append(False)
                     continue
 
-                """fit  and data check, better conditions?"""
+                # fit  and data check, better conditions?
                 stder = np.sqrt(np.diag(cov))
                 if stder[0] > par[0] or stder[1] > par[1]:
                     print(
-                        f"Check force data and fit on specie {specie_set[i]}, maybe does not decay exponentially"
+                        f"Check force data and fit on specie {specie_set[i]},"
+                        "maybe does not decay exponentially"
                     )
                     cond.append(False)
                     continue
 
-                """find min distance  required for convergence"""
-                min_conv_dist = self.min_SCconv_dist(self.conv_thr, par[0], par[1])
-                # print(f"Max mu-atom distance in the SC is {max(specie_dist)}, Min distance required for conv is {min_conv_dist}")
+                # find min distance  required for convergence
+                min_conv_dist = self.min_sconv_dist(self.conv_thr, par[0], par[1])
+                # print(f"Max mu-atom distance in the SC is {max(specie_dist)}, Min distance"
+                # \" required for conv is {min_conv_dist}")
 
-                """TO DO: print lines to be removed"""
+                # TO DO: print lines to be removed
                 if max(specie_dist) >= min_conv_dist:
                     print(
-                        "Second SC convergence Criteria achieved on specie--> {}".format(
-                            specie_set[i]
-                        )
+                        f"Second SC convergence Criteria achieved on specie--> {specie_set[i]}"
                     )
                     cond.append(True)
                 else:
                     print(
-                        f"For specie {specie_set[i]} the 2nd SC convergence is NOT achieved, min dist required is {min_conv_dist} Ang "
+                        f"For specie {specie_set[i]} the 2nd SC convergence is NOT achieved,"
+                        " min dist required is {min_conv_dist} Ang "
                     )
                     cond.append(False)
 
             else:
                 print(
-                    "The current SC size is NOT sufficient for convergence checks on specie--> {}".format(
-                        specie_set[i]
-                    )
+                    f"The current SC size is NOT sufficient for  specie, {specie_set[i]}"
                 )
 
         if not cond:
@@ -204,11 +202,11 @@ class chkconvergence:
         return cond
 
 
-import argparse
-
-from ase.io import read
-
 if __name__ == "__main__":
+    import argparse
+
+    from ase.io import read
+
     parser = argparse.ArgumentParser(description=" Check supercell convergence")
 
     parser.add_argument(
@@ -240,16 +238,16 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    mu_num_spec = args.mu_num_spec
-    conv_thr = args.conv_thr
-    max_force_thr = args.max_force_thr
+    mu_num_sp = args.mu_num_spec
+    conv_th = args.conv_thr
+    max_force_th = args.max_force_thr
 
     # load structure with ase and then forces
-    ase_struc = read(args.input_structure)
+    ase_st = read(args.input_structure)
     atf = np.loadtxt(args.atomic_forces)
 
     # call the func
-    csc = chkSCconvergence(ase_struc, atf)
-    cond = csc.apply_first_crit()
-    cond2 = csc.apply_2nd_crit()
-    print(f"Convergence of 1st criteria is {cond}, while 2nd criteria is {cond2}")
+    csc = ChkConvergence(ase_st, atf)
+    CONDD = csc.apply_first_crit()
+    condd2 = csc.apply_2nd_crit()
+    print(f"Convergence of 1st criteria is {CONDD}, while 2nd criteria is {condd2}")

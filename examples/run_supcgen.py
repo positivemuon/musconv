@@ -1,19 +1,20 @@
 # -*- coding: utf-8 -*-
+""" Run example"""
 from pymatgen.core import Structure
 
-from musConv.supcgen import SCgenerators
+from musconv.supcgen import ScGenerators
 
 if __name__ == "__main__":
     # load structure with pymatgen
     py_struc = Structure.from_file("LiF.cif")
 
-    sg = SCgenerators(py_struc)
+    sg = ScGenerators(py_struc)
 
     # initialize the caluclations
-    # py_SCstruc_mu2,SC_matrix,mu_frac_coord=sg.initialize(min_length)
-    py_SCstruc_mu2, SC_matrix, mu_frac_coord = sg.initialize()
-    py_SCstruc_mu2.to(filename="positions.cif".format())
-    # print(SC_matrix)
+    # py_scst_mu2,sc_matrix,mu_frac_coord=sg.initialize(min_length)
+    py_scst_mu2, sc_matrix, mu_frac_coord = sg.initialize()
+    py_scst_mu2.to(filename="positions.cif".format())
+    # print(sc_matrix)
 
     # while and if loop then depending on workchain usage
-    # py_SCstruc_mu2,SC_matrix=sg.re_initialize(py_SCstruc_mu2,mu_frac_coord)
+    # py_scst_mu2,sc_matrix=sg.re_initialize(py_scst_mu2,mu_frac_coord)

@@ -1,6 +1,6 @@
-# musConv
+# musconv
 
-musConv is a python package for generating near cubic supercells and for checking the convergence of a supercell siz with respect to atomic forces induced by an interstitial impurity at a Voronoi site.
+musconv is a python package for generating near cubic supercells and for checking the convergence of a supercell size with respect to atomic forces induced by an interstitial impurity at a Voronoi site.
 
 |     | |
 |-----|----------------------------------------------------------------------------|
@@ -9,14 +9,14 @@ musConv is a python package for generating near cubic supercells and for checkin
 ## Installation
 1.) Install from [pypi](https://pypi.org/project/musConv/0.0.1/) as;
 
-```pip install musConv```
+```pip install musconv```
 
 
 2.) Install the repository as:
 
 ```
-git clone https://github.com/positivemuon/aiida-musConv.git
-cd musConv/
+git clone https://github.com/positivemuon/musconv.git
+cd musconv/
 python setup.py install
 ```
 
@@ -42,7 +42,7 @@ To quickly run the script if installed try;
 
 when not installed try:
 
-```python musConv/supcgen.py examples/LiF.cif```
+```python musconv/supcgen.py examples/LiF.cif```
 
 
 ## ii.) chkconv.py
@@ -61,4 +61,4 @@ or
 
 when not installed try:
 
-```python musConv/chkconv.py examples/LiF_p1.cif examples/LiF_p1_forces.txt```
+```python musconv/chkconv.py examples/LiF_p1.cif examples/LiF_p1_forces.txt```

@@ -3,7 +3,7 @@
     "author": "Ifeanyi John Onuorah",
     "author_email": "",
     "description": "Generate supercell and check supercell convergence with SCF forces",
-    "url": "https://github.com/positivemuon/musConv",
+    "url": "https://github.com/positivemuon/musconv",
     "license": "MIT",
     "classifiers": [
         "License :: OSI Approved :: MIT License",

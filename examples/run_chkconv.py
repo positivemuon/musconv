@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
+""" Run example"""
 import numpy as np
 from ase.io import read
 
-from musconv.chkconv import chkconvergence
+from musconv.chkconv import ChkConvergence
 
 if __name__ == "__main__":
     # load structure with ase and then forces
@@ -10,7 +11,7 @@ if __name__ == "__main__":
     atf = np.loadtxt("LiF_p1_forces.txt")
 
     # call the func
-    csc = chkconvergence(ase_struc, atf)
-    cond = csc.apply_first_crit()
+    csc = ChkConvergence(ase_struc, atf)
+    COND = csc.apply_first_crit()
     cond2 = csc.apply_2nd_crit()
-    print(f"Convergence of 1st criteria is {cond}, while 2nd criteria is {cond2}")
+    print(f"Convergence of 1st criteria is {COND}, while 2nd criteria is {cond2}")

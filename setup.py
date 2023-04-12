@@ -1,16 +1,20 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-##https://gist.github.com/juancarlospaco/75d258d6ffb6e15f395c
+""" setup"""
 import json
 
 from setuptools import find_packages, setup
 
 if __name__ == "__main__":
-    with open("setup.json", "r") as info:
+    with open("setup.json", "r", encoding="utf-8") as info:
         kwargs = json.load(info)
+
+    with open("README.md", encoding="utf-8") as file:
+        l_descr = file.read()
+
     setup(
         packages=find_packages(),
-        long_description=open("README.md").read(),
+        long_description=l_descr,
         long_description_content_type="text/markdown",
         **kwargs
     )
