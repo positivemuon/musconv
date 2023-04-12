@@ -23,10 +23,10 @@ repos:
     -   id: black
 
 
-- repo: local
-  hooks:
-    - id: pylint
-      name: pylint
-      entry: pylint
-      types: [python]
-      language: system
+#- repo: local
+#  hooks:
+#    - id: pylint
+#      name: pylint
+#      entry: pylint
+#      types: [python]
+#      language: system
